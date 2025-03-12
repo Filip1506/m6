@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relation pr. Kasse-side</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <button id="addClassBtn">Tilføj klasse</button>
+
+  <div id="canvas">
+    <svg id="connectionLayer"></svg>
+
+    <!-- Pop-up menu til at redigere/slette en forbindelse -->
+    <div id="connectionMenu">
+      <label>Relation fra kasse A:</label>
+      <input type="text" id="relationAInput" placeholder="fx 1..*" />
+      <label>Relation fra kasse B:</label>
+      <input type="text" id="relationBInput" placeholder="fx 0..1" />
+      <button id="saveRelationBtn">Gem</button>
+      <button id="deleteConnectionBtn">Slet</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
