@@ -62,7 +62,7 @@ function init() {
         y: 250
     });
 
-    // Drag & drop
+    // Drag & drop solution
     const canvas = document.getElementById('canvas');
     canvas.addEventListener('mousedown', onCanvasMouseDown);
     document.addEventListener('mousemove', onDocumentMouseMove);
