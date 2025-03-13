@@ -119,7 +119,7 @@ function createBox({ title, attributes, methods, x, y }) {
     titleEl.innerText = title || 'NyKlasse';
     boxEl.appendChild(titleEl);
 
-    // Attributes
+    // Attributter
     const attrEl = document.createElement('div');
     attrEl.classList.add('attributes');
     (attributes || []).forEach(a => {
