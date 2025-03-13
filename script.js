@@ -48,14 +48,14 @@ function init() {
 
     // Start med to kasser
     createBox({
-        title: 'Klasse1',
+        title: 'Klasse 1',
         attributes: ['-id:int', '-data:String'],
         methods: ['+hentData()', '+gemData()'],
         x: 200,
         y: 120
     });
     createBox({
-        title: 'Klasse2',
+        title: 'Klasse 2',
         attributes: ['-nr:int', '-beskrivelse:String'],
         methods: ['+hentBeskrivelse()'],
         x: 450,
