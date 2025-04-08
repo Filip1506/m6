@@ -1,1 +1,10 @@
-der er desværre ingen
+git checkout -b update/tekst
+# ... lav ændringer ...
+git add .
+git commit -m "Opdateret tekster i README"
+git push -u origin update/tekst
+# ... lav pull request på GitHub ...
+git checkout main
+git pull
+git merge update/tekst
+git branch -d update/tekst
