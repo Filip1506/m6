@@ -1,10 +1,15 @@
-git checkout -b update/tekst
+git checkout -b "navn på branch"
+
 # ... lav ændringer ...
+
 git add .
-git commit -m "Opdateret tekster i README"
-git push -u origin update/tekst
+git commit -m "Beskrivelse"
+git push -u origin "navn på branch"
+
 # ... lav pull request på GitHub ...
+
 git checkout main
 git pull
-git merge update/tekst
-git branch -d update/tekst
+git merge "navn på branch"
+git branch -d "navn på branch"
+git push origin main
