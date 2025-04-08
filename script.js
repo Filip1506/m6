@@ -7,17 +7,8 @@ let draggingBox = null;
 let offsetX = 0, offsetY = 0;
 
 // Gemmer info om første nodeklik
+// ex. { boxId, side: "left"|"right"|"top"|"bottom" }
 let selectedNode = null;
-
-// Menu-elementer
-let connectionMenu = null;
-let relationAInput = null;
-let relationBInput = null;
-let saveRelationBtn = null;
-let deleteConnectionBtn = null;
-
-// Hvilken forbindelse er i fokus
-let activeConnection = null;
 
 /****************************************************
  * INIT
@@ -25,17 +16,7 @@ let activeConnection = null;
 window.addEventListener('DOMContentLoaded', init);
 
 function init() {
-    // Find menu-elementer
-    connectionMenu = document.getElementById('connectionMenu');
-    relationAInput = document.getElementById('relationAInput');
-    relationBInput = document.getElementById('relationBInput');
-    saveRelationBtn = document.getElementById('saveRelationBtn');
-    deleteConnectionBtn = document.getElementById('deleteConnectionBtn');
-
-    saveRelationBtn.addEventListener('click', onSaveRelation);
-    deleteConnectionBtn.addEventListener('click', onDeleteConnection);
-
-    // "Tilføj klasse"-knap
+    // Knap: "Tilføj klasse"
     document.getElementById('addClassBtn').addEventListener('click', () => {
         createBox({
             title: 'NyKlasse',
@@ -46,23 +27,23 @@ function init() {
         });
     });
 
-    // Start med to kasser
+    // To kasser fra start
     createBox({
-        title: 'Klasse 1',
+        title: 'Klasse1',
         attributes: ['-id:int', '-data:String'],
         methods: ['+hentData()', '+gemData()'],
         x: 200,
         y: 120
     });
     createBox({
-        title: 'Klasse 2',
+        title: 'Klasse2',
         attributes: ['-nr:int', '-beskrivelse:String'],
         methods: ['+hentBeskrivelse()'],
         x: 450,
         y: 250
     });
 
-    // Drag & drop solution
+    // Drag & drop
     const canvas = document.getElementById('canvas');
     canvas.addEventListener('mousedown', onCanvasMouseDown);
     document.addEventListener('mousemove', onDocumentMouseMove);
@@ -80,7 +61,7 @@ function createBox({ title, attributes, methods, x, y }) {
     boxEl.style.left = x + 'px';
     boxEl.style.top = y + 'px';
 
-    // Farvebjælke
+    // Farvebjælke (drag handle)
     const colorBar = document.createElement('div');
     colorBar.classList.add('colorBar');
     boxEl.appendChild(colorBar);
@@ -106,7 +87,7 @@ function createBox({ title, attributes, methods, x, y }) {
     });
     boxEl.appendChild(colorMenu);
 
-    // Klik på farve-knap => toggle menu
+    // Klik på farve-knappen => toggle farvemenu
     colorBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         colorMenu.style.display = (colorMenu.style.display === 'block') ? 'none' : 'block';
@@ -119,7 +100,7 @@ function createBox({ title, attributes, methods, x, y }) {
     titleEl.innerText = title || 'NyKlasse';
     boxEl.appendChild(titleEl);
 
-    // Attributter
+    // Attributes
     const attrEl = document.createElement('div');
     attrEl.classList.add('attributes');
     (attributes || []).forEach(a => {
@@ -167,7 +148,7 @@ function createBox({ title, attributes, methods, x, y }) {
     methodsEl.appendChild(addMethod);
     boxEl.appendChild(methodsEl);
 
-    // 4 noder
+    // 4 noder: top, right, bottom, left
     const nTop = document.createElement('div');
     nTop.classList.add('node', 'node-top');
     nTop.addEventListener('click', () => onNodeClick(boxObj, 'top'));
@@ -205,14 +186,11 @@ function createBox({ title, attributes, methods, x, y }) {
  * onNodeClick => forbinde 2 noder
  ****************************************************/
 function onNodeClick(boxObj, side) {
-    // Luk menu, hvis åben
-    hideConnectionMenu();
-
     if (!selectedNode) {
         // Første klik
         selectedNode = { boxId: boxObj.id, side };
     } else {
-        // Andet klik => opret forbindelse
+        // Andet klik
         if (selectedNode.boxId !== boxObj.id || selectedNode.side !== side) {
             addConnection(selectedNode.boxId, selectedNode.side, boxObj.id, side);
         }
@@ -221,114 +199,31 @@ function onNodeClick(boxObj, side) {
 }
 
 /****************************************************
- * addConnection => opret polyline + to labels
+ * addConnection => opret polyline
  ****************************************************/
 function addConnection(boxIdA, sideA, boxIdB, sideB) {
     const svg = document.getElementById('connectionLayer');
-
-    // polyline
     const pline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     pline.setAttribute('fill', 'none');
     pline.setAttribute('stroke', '#000');
     pline.setAttribute('stroke-width', '2');
-    pline.setAttribute('pointer-events', 'stroke'); // klikbart
     svg.appendChild(pline);
 
-    // labelA
-    const labelA = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    labelA.setAttribute('fill', 'red');
-    labelA.setAttribute('font-size', '12');
-    labelA.setAttribute('pointer-events', 'all');
-    svg.appendChild(labelA);
-
-    // labelB
-    const labelB = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    labelB.setAttribute('fill', 'red');
-    labelB.setAttribute('font-size', '12');
-    labelB.setAttribute('pointer-events', 'all');
-    svg.appendChild(labelB);
-
-    // Klik på linjen eller label => vis menu
-    const conn = {
-        boxA: boxIdA, sideA,
-        boxB: boxIdB, sideB,
-        poly: pline,
-        labelA, labelB,
-        relationA: '', // Tekst fra kasse A
-        relationB: ''  // Tekst fra kasse B
-    };
-    pline.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onConnectionClick(conn, e.pageX, e.pageY);
-    });
-    labelA.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onConnectionClick(conn, e.pageX, e.pageY);
-    });
-    labelB.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onConnectionClick(conn, e.pageX, e.pageY);
+    connections.push({
+        boxA: boxIdA,
+        sideA,
+        boxB: boxIdB,
+        sideB,
+        poly: pline
     });
 
-    connections.push(conn);
     updateConnections();
-}
-
-/****************************************************
- * onConnectionClick => vis menu
- ****************************************************/
-function onConnectionClick(conn, clickX, clickY) {
-    activeConnection = conn;
-    // Sæt inputfelter
-    relationAInput.value = conn.relationA || '';
-    relationBInput.value = conn.relationB || '';
-    // Vis menu
-    connectionMenu.style.display = 'block';
-    connectionMenu.style.left = clickX + 'px';
-    connectionMenu.style.top = clickY + 'px';
-}
-
-/****************************************************
- * onSaveRelation => gem relation
- ****************************************************/
-function onSaveRelation() {
-    if (!activeConnection) return;
-    activeConnection.relationA = relationAInput.value;
-    activeConnection.relationB = relationBInput.value;
-    hideConnectionMenu();
-    updateConnections();
-}
-
-/****************************************************
- * onDeleteConnection => slet forbindelse
- ****************************************************/
-function onDeleteConnection() {
-    if (!activeConnection) return;
-    if (activeConnection.poly) activeConnection.poly.remove();
-    if (activeConnection.labelA) activeConnection.labelA.remove();
-    if (activeConnection.labelB) activeConnection.labelB.remove();
-
-    connections = connections.filter(c => c !== activeConnection);
-    hideConnectionMenu();
-}
-
-/****************************************************
- * hideConnectionMenu => luk menu
- ****************************************************/
-function hideConnectionMenu() {
-    connectionMenu.style.display = 'none';
-    activeConnection = null;
 }
 
 /****************************************************
  * DRAG & DROP
  ****************************************************/
 function onCanvasMouseDown(e) {
-    // Luk menu hvis klikket på tomt canvas
-    if (e.target.id === 'canvas') {
-        hideConnectionMenu();
-    }
-
     const colorBar = e.target.closest('.colorBar');
     if (colorBar) {
         const boxEl = colorBar.parentElement;
@@ -379,7 +274,7 @@ function moveBox(e) {
 }
 
 /****************************************************
- * updateConnections => Z-form + 2 labels
+ * updateConnections => tegner segmenter
  ****************************************************/
 function updateConnections() {
     connections.forEach(conn => {
@@ -390,42 +285,22 @@ function updateConnections() {
         const pA = getNodeCenter(boxA, conn.sideA);
         const pB = getNodeCenter(boxB, conn.sideB);
 
-        // Lav en Z-form
+        // Lav en “Z”/“U”-form
         const pts = getSegments(pA, conn.sideA, pB, conn.sideB);
         const pathStr = pts.map(p => p.join(',')).join(' ');
         conn.poly.setAttribute('points', pathStr);
-
-        // Placér labelA ved midtpunktet mellem p1 og p1Out
-        // Placér labelB ved midtpunktet mellem p2 og p2In
-        // => vi antager 5 punkter: [p1, p1Out, mid, p2In, p2]
-        // p1 = pts[0], p1Out = pts[1], p2In = pts[3], p2 = pts[4]
-
-        if (pts.length === 5) {
-            const p1 = pts[0];
-            const p1Out = pts[1];
-            const p2In = pts[3];
-            const p2_ = pts[4];
-
-            const midA = midpoint(p1, p1Out);
-            conn.labelA.setAttribute('x', midA.x);
-            conn.labelA.setAttribute('y', midA.y);
-            conn.labelA.textContent = conn.relationA || '';
-
-            const midB = midpoint(p2In, p2_);
-            conn.labelB.setAttribute('x', midB.x);
-            conn.labelB.setAttribute('y', midB.y);
-            conn.labelB.textContent = conn.relationB || '';
-        }
     });
 }
 
 /****************************************************
- * getNodeCenter
+ * getNodeCenter => find center for top/right/bottom/left
  ****************************************************/
 function getNodeCenter(boxObj, side) {
     const nodeEl = boxObj.element.querySelector(`.node-${side}`);
-    if (!nodeEl) return { x: boxObj.x, y: boxObj.y };
-
+    if (!nodeEl) {
+        // fallback
+        return { x: boxObj.x, y: boxObj.y };
+    }
     const boxRect = boxObj.element.getBoundingClientRect();
     const nodeRect = nodeEl.getBoundingClientRect();
     const canvasRect = document.getElementById('canvas').getBoundingClientRect();
@@ -436,39 +311,38 @@ function getNodeCenter(boxObj, side) {
 }
 
 /****************************************************
- * getSegments => Z-form
+ * getSegments => laver 4-segment “Z”-form
+ * - p1Out: offset fra p1 i retning sideA
+ * - p2In: offset fra p2 i retning sideB
+ * - to mellempunkter => L-linje
  ****************************************************/
 function getSegments(p1, sideA, p2, sideB) {
-    const offset = 20;
+    const offset = 20; // hvor langt linjen går ud fra kassen
+    // Start offset
     let p1Out = { x: p1.x, y: p1.y };
     if (sideA === 'left') p1Out.x -= offset;
     if (sideA === 'right') p1Out.x += offset;
     if (sideA === 'top') p1Out.y -= offset;
     if (sideA === 'bottom') p1Out.y += offset;
 
+    // Slut offset
     let p2In = { x: p2.x, y: p2.y };
     if (sideB === 'left') p2In.x -= offset;
     if (sideB === 'right') p2In.x += offset;
     if (sideB === 'top') p2In.y -= offset;
     if (sideB === 'bottom') p2In.y += offset;
 
-    const mid = [p2In.x, p1Out.y];
+    // Vi vil lave en “Z”-form:
+    // p1 -> p1Out -> (p2In.x, p1Out.y) -> p2In -> p2
+    // med i alt 4 segmenter
+
+    const mid1 = [p2In.x, p1Out.y]; // L-form i midten
 
     return [
         [p1.x, p1.y],
         [p1Out.x, p1Out.y],
-        mid,
+        mid1,
         [p2In.x, p2In.y],
         [p2.x, p2.y]
     ];
-}
-
-/****************************************************
- * midpoint => finder midtpunktet mellem to punkter
- ****************************************************/
-function midpoint(a, b) {
-    return {
-        x: (a[0] + b[0]) / 2,
-        y: (a[1] + b[1]) / 2
-    };
 }
